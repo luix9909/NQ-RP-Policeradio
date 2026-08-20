@@ -35,6 +35,22 @@ CREATE TABLE IF NOT EXISTS messages (
   deleted INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  reporter_id INTEGER NOT NULL,
+  reporter_name TEXT NOT NULL,
+  location TEXT NOT NULL,
+  details TEXT,
+  is_panic INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending', -- pending | accepted | finished | rejected
+  accepted_by_id INTEGER,
+  accepted_by_name TEXT,
+  responders TEXT NOT NULL DEFAULT '[]', -- JSON array of {id,name} for panic multi-responders
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  accepted_at TEXT,
+  finished_at TEXT
+);
 `);
 
 // Seed: default rooms (موجة 1..3)
@@ -46,14 +62,14 @@ if (roomCount === 0) {
   ins.run('موجة 3');
 }
 
-// Seed: default owner code if no users exist yet
+// Seed: default owner code if no users exist yet — generated ONCE, printed once, never regenerated.
 let seededOwnerCode = null;
 const userCount = db.prepare('SELECT COUNT(*) c FROM users').get().c;
 if (userCount === 0) {
   seededOwnerCode = 'OWNER-' + nanoid(8).toUpperCase();
   db.prepare(`INSERT INTO users (code, email, name, rank, department, role)
               VALUES (?, ?, ?, ?, ?, 'owner')`)
-    .run(seededOwnerCode, 'owner@radio.local', 'المالك', 'قائد', 'الإدارة العامة');
+    .run(seededOwnerCode, 'slomsalman2@gmail.com', 'المالك', 'قائد عام', 'الإدارة العامة');
 }
 
 module.exports = { db, seededOwnerCode };

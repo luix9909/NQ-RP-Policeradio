@@ -12,9 +12,10 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 // ---- in-memory session + realtime state (fine for single-process deploys) ----
-const sessions = new Map();           // token -> userId
-const roomPresence = new Map();       // roomId -> Map(socketId -> userPublic)
-const roomSpeaker = new Map();        // roomId -> { userId, socketId, name }
+const sessions = new Map();              // token -> userId
+const roomPresence = new Map();          // roomId -> Map(socketId -> userPublic)
+const roomSpeaker = new Map();           // roomId -> { userId, socketId, name }
+const activeReportByUser = new Map();    // userId -> reportId (normal reports only — busy lock)
 
 const ROLE_RANK = { owner: 3, admin_high: 2, admin_low: 1, member: 0 };
 
@@ -24,6 +25,10 @@ function publicUser(u) {
 
 function getUserById(id) {
   return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+}
+
+function normEmail(e) {
+  return String(e || '').trim().toLowerCase();
 }
 
 function requireAuth(req, res, next) {
@@ -45,12 +50,18 @@ function requireRole(minRole) {
   };
 }
 
+function publicReport(r) {
+  return { ...r, responders: JSON.parse(r.responders || '[]') };
+}
+
 // ---------------- AUTH ----------------
 app.post('/api/login', (req, res) => {
-  const { code } = req.body;
-  if (!code) return res.status(400).json({ error: 'أدخل الرمز' });
-  const user = db.prepare('SELECT * FROM users WHERE code = ?').get(code.trim());
-  if (!user) return res.status(401).json({ error: 'الرمز غير صحيح' });
+  const { email, code } = req.body;
+  if (!email || !email.trim()) return res.status(400).json({ error: 'أدخل البريد الإلكتروني' });
+  if (!code || !code.trim()) return res.status(400).json({ error: 'أدخل الرمز' });
+  const user = db.prepare('SELECT * FROM users WHERE lower(trim(email)) = ? AND code = ?')
+    .get(normEmail(email), code.trim());
+  if (!user) return res.status(401).json({ error: 'البريد أو الرمز غير صحيح' });
   if (user.banned) return res.status(403).json({ error: 'تم حظر هذا الحساب' });
   const token = nanoid(32);
   sessions.set(token, user.id);
@@ -88,6 +99,9 @@ app.get('/api/admin/users', requireAuth, requireRole('admin_high'), (req, res) =
 app.post('/api/admin/users', requireAuth, requireRole('admin_high'), (req, res) => {
   const { email, name, rank, department, role } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ error: 'الاسم مطلوب' });
+  if (!email || !email.trim()) return res.status(400).json({ error: 'البريد الإلكتروني مطلوب — يحتاجه الشخص لتسجيل الدخول' });
+  const existing = db.prepare('SELECT id FROM users WHERE lower(trim(email)) = ?').get(normEmail(email));
+  if (existing) return res.status(400).json({ error: 'هذا البريد مستخدم مسبقاً' });
   let assignRole = role || 'member';
   // only owner can create admins/owners
   if (req.user.role !== 'owner' && assignRole !== 'member') {
@@ -96,7 +110,7 @@ app.post('/api/admin/users', requireAuth, requireRole('admin_high'), (req, res) 
   const code = nanoid(8).toUpperCase();
   const info = db.prepare(
     `INSERT INTO users (code, email, name, rank, department, role) VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(code, email || '', name.trim(), rank || '', department || '', assignRole);
+  ).run(code, email.trim(), name.trim(), rank || '', department || '', assignRole);
   res.json(db.prepare('SELECT id, code, email, name, rank, department, role, banned FROM users WHERE id = ?').get(info.lastInsertRowid));
 });
 
@@ -132,6 +146,105 @@ app.delete('/api/admin/users/:id', requireAuth, requireRole('admin_high'), (req,
   res.json({ ok: true });
 });
 
+// ---------------- REPORTS (بلاغات) ----------------
+app.get('/api/reports', requireAuth, (req, res) => {
+  const rows = db.prepare('SELECT * FROM reports ORDER BY id ASC LIMIT 300').all();
+  res.json(rows.map(publicReport));
+});
+
+app.post('/api/reports', requireAuth, (req, res) => {
+  const { location, details } = req.body;
+  if (!location || !location.trim()) return res.status(400).json({ error: 'اكتب اسم الموقع' });
+  const info = db.prepare(
+    `INSERT INTO reports (reporter_id, reporter_name, location, details, is_panic, status)
+     VALUES (?, ?, ?, ?, 0, 'pending')`
+  ).run(req.user.id, req.user.name, location.trim(), (details || '').trim());
+  const report = publicReport(db.prepare('SELECT * FROM reports WHERE id = ?').get(info.lastInsertRowid));
+  io.emit('report:new', report);
+  res.json(report);
+});
+
+app.post('/api/reports/panic', requireAuth, (req, res) => {
+  const { location } = req.body;
+  if (!location || !location.trim()) return res.status(400).json({ error: 'اكتب الموقع فقط' });
+  const info = db.prepare(
+    `INSERT INTO reports (reporter_id, reporter_name, location, details, is_panic, status)
+     VALUES (?, ?, ?, '', 1, 'pending')`
+  ).run(req.user.id, req.user.name, location.trim());
+  const report = publicReport(db.prepare('SELECT * FROM reports WHERE id = ?').get(info.lastInsertRowid));
+  io.emit('report:panic', report);   // forces the alert on every client
+  io.emit('report:new', report);
+  res.json(report);
+});
+
+app.post('/api/reports/:id/accept', requireAuth, (req, res) => {
+  const report = db.prepare('SELECT * FROM reports WHERE id = ?').get(req.params.id);
+  if (!report) return res.status(404).json({ error: 'البلاغ غير موجود' });
+  if (report.status === 'finished' || report.status === 'rejected') {
+    return res.status(400).json({ error: 'هذا البلاغ منتهي' });
+  }
+
+  if (report.is_panic) {
+    // Emergency reports: anyone can join, no exclusivity lock.
+    const responders = JSON.parse(report.responders || '[]');
+    if (!responders.some(r => r.id === req.user.id)) responders.push({ id: req.user.id, name: req.user.name });
+    db.prepare('UPDATE reports SET status = ?, responders = ?, accepted_by_id = COALESCE(accepted_by_id, ?), accepted_by_name = COALESCE(accepted_by_name, ?), accepted_at = COALESCE(accepted_at, datetime(\'now\')) WHERE id = ?')
+      .run('accepted', JSON.stringify(responders), req.user.id, req.user.name, report.id);
+    const updated = publicReport(db.prepare('SELECT * FROM reports WHERE id = ?').get(report.id));
+    io.emit('report:accepted', updated);
+    return res.json(updated);
+  }
+
+  // normal report — exclusivity lock
+  const existingActive = activeReportByUser.get(req.user.id);
+  if (existingActive) {
+    return res.status(400).json({ error: 'عندك بلاغ نشط حالياً، أنهه أولاً قبل استلام بلاغ جديد' });
+  }
+  if (report.status !== 'pending') {
+    return res.status(400).json({ error: 'البلاغ مستلم من شخص آخر بالفعل' });
+  }
+  db.prepare(`UPDATE reports SET status='accepted', accepted_by_id=?, accepted_by_name=?, accepted_at=datetime('now') WHERE id=?`)
+    .run(req.user.id, req.user.name, report.id);
+  activeReportByUser.set(req.user.id, report.id);
+  const updated = publicReport(db.prepare('SELECT * FROM reports WHERE id = ?').get(report.id));
+  io.emit('report:accepted', updated);
+  res.json(updated);
+});
+
+app.post('/api/reports/:id/reject', requireAuth, (req, res) => {
+  const report = db.prepare('SELECT * FROM reports WHERE id = ?').get(req.params.id);
+  if (!report) return res.status(404).json({ error: 'البلاغ غير موجود' });
+  if (report.status !== 'pending') return res.status(400).json({ error: 'لا يمكن رفض بلاغ مستلم أو منتهي' });
+  db.prepare(`UPDATE reports SET status='rejected' WHERE id=?`).run(report.id);
+  const updated = publicReport(db.prepare('SELECT * FROM reports WHERE id = ?').get(report.id));
+  io.emit('report:rejected', updated);
+  res.json(updated);
+});
+
+app.post('/api/reports/:id/finish', requireAuth, (req, res) => {
+  const report = db.prepare('SELECT * FROM reports WHERE id = ?').get(req.params.id);
+  if (!report) return res.status(404).json({ error: 'البلاغ غير موجود' });
+  if (report.status === 'finished') return res.status(400).json({ error: 'البلاغ منتهي بالفعل' });
+
+  const responders = JSON.parse(report.responders || '[]');
+  const isResponder = report.accepted_by_id === req.user.id || responders.some(r => r.id === req.user.id);
+  const canOverride = ROLE_RANK[req.user.role] >= ROLE_RANK['admin_high'];
+  if (!isResponder && !canOverride) {
+    return res.status(403).json({ error: 'فقط من استلم البلاغ يقدر ينهيه' });
+  }
+
+  db.prepare(`UPDATE reports SET status='finished', finished_at=datetime('now') WHERE id=?`).run(report.id);
+
+  // free the exclusivity lock for whoever held this report
+  if (report.accepted_by_id) activeReportByUser.delete(report.accepted_by_id);
+  responders.forEach(r => activeReportByUser.delete(r.id));
+
+  const updated = publicReport(db.prepare('SELECT * FROM reports WHERE id = ?').get(report.id));
+  io.emit('report:finished', { report: updated, finishedBy: req.user.name });
+  if (report.is_panic) io.emit('report:panic_resolved', { reportId: report.id });
+  res.json(updated);
+});
+
 // ---------------- SOCKET.IO ----------------
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
@@ -154,6 +267,10 @@ function broadcastPresence(roomId) {
 
 io.on('connection', (socket) => {
   const u = socket.user;
+
+  // send currently-open (non-finished/rejected) panic reports so late joiners still see them
+  const openPanics = db.prepare(`SELECT * FROM reports WHERE is_panic = 1 AND status NOT IN ('finished','rejected') ORDER BY id DESC`).all();
+  openPanics.forEach(r => socket.emit('report:panic', publicReport(r)));
 
   socket.on('room:join', (roomId) => {
     roomId = String(roomId);
@@ -240,6 +357,7 @@ server.listen(PORT, () => {
   console.log('Server running on port', PORT);
   if (seededOwnerCode) {
     console.log('================================================');
+    console.log(' بريد المالك: slomsalman2@gmail.com');
     console.log(' رمز دخول المالك (احفظه، ما يظهر مرة ثانية):');
     console.log(' ' + seededOwnerCode);
     console.log('================================================');

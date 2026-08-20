@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
 <title>شبكة الراديو الآمنة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -11,7 +11,9 @@
   --bg-0:#070b12;
   --bg-1:#0c131f;
   --bg-2:#121b29;
+  --bg-3:#182338;
   --line:#22304a;
+  --line-2:#2c3d5c;
   --amber:#eab308;
   --amber-2:#f5c451;
   --amber-dim:#8a6a15;
@@ -19,9 +21,13 @@
   --text-1:#a9b6c9;
   --text-2:#5f6f88;
   --red:#e5484d;
+  --red-2:#ff6b6f;
   --green:#3ecf8e;
+  --blue:#4fa0ff;
   --font-ar:'Cairo',system-ui,sans-serif;
   --font-mono:'JetBrains Mono',monospace;
+  --radius:14px;
+  --shadow-lg:0 20px 60px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
@@ -30,17 +36,23 @@ body{
   background:var(--bg-0);
   color:var(--text-0);
   overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
 }
 .hidden{display:none !important;}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
-input{font-family:inherit;}
+input,select,textarea{font-family:inherit;}
 ::selection{background:var(--amber);color:#000;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:8px;}
+::-webkit-scrollbar-thumb:hover{background:var(--amber-dim);}
 
 /* ---------------- LOGIN SCREEN ---------------- */
 #login-screen{
   height:100vh;
   display:grid;
   grid-template-columns: 460px 1fr;
+  position:relative;
 }
 @media (max-width:860px){
   #login-screen{grid-template-columns:1fr;}
@@ -54,7 +66,9 @@ input{font-family:inherit;}
   justify-content:center;
   padding:56px;
   position:relative;
+  overflow-y:auto;
 }
+@media (max-width:520px){ #login-left{padding:28px 22px;} }
 .badge-status{
   display:inline-flex;align-items:center;gap:8px;
   width:fit-content;
@@ -67,7 +81,8 @@ input{font-family:inherit;}
   border-radius:20px;
   margin-bottom:28px;
 }
-.badge-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
+.badge-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);animation:blink 1.6s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.35;}}
 .login-title{font-size:34px;font-weight:900;margin-bottom:8px;}
 .login-sub{color:var(--text-1);font-size:14px;margin-bottom:32px;line-height:1.8;}
 .field{margin-bottom:18px;}
@@ -78,12 +93,13 @@ input{font-family:inherit;}
   border:1px solid var(--line);
   border-radius:10px;
   padding:14px 16px;
-  transition:border-color .15s;
+  transition:border-color .15s, box-shadow .15s;
 }
-.field .box:focus-within{border-color:var(--amber-dim);}
+.field .box:focus-within{border-color:var(--amber-dim);box-shadow:0 0 0 3px rgba(234,179,8,.08);}
 .field input{
   flex:1;background:none;border:none;outline:none;color:var(--text-0);
   font-family:var(--font-mono);font-size:14px;letter-spacing:1px;
+  min-width:0;
 }
 .field .icon{color:var(--text-2);font-size:14px;}
 #login-btn{
@@ -107,7 +123,8 @@ input{font-family:inherit;}
 #login-right{
   position:relative;
   background:
-    radial-gradient(circle at 80% 20%, rgba(234,179,8,.06), transparent 45%),
+    radial-gradient(circle at 80% 20%, rgba(234,179,8,.08), transparent 45%),
+    radial-gradient(circle at 10% 90%, rgba(79,160,255,.06), transparent 40%),
     var(--bg-0);
   display:flex;flex-direction:column;justify-content:space-between;
   padding:48px 64px;
@@ -131,13 +148,16 @@ input{font-family:inherit;}
   background:linear-gradient(160deg,var(--amber-2),var(--amber-dim));
   display:flex;align-items:center;justify-content:center;
   font-size:20px;
+  box-shadow:0 6px 18px rgba(234,179,8,.25);
 }
 .hero{position:relative;z-index:1;text-align:right;}
 .hero-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:3px;color:var(--amber-2);margin-bottom:18px;display:flex;align-items:center;gap:8px;justify-content:flex-end;}
-.hero-eyebrow::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);}
-.hero h1{font-size:58px;line-height:1.15;font-weight:900;}
+.hero-eyebrow::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.hero h1{font-size:56px;line-height:1.15;font-weight:900;}
 .hero h1 .accent{color:var(--amber);}
 .hero p{color:var(--text-1);font-size:15px;margin-top:18px;max-width:520px;margin-inline-start:auto;line-height:1.9;}
+.feature-chips{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:24px;position:relative;z-index:1;}
+.feature-chips span{border:1px solid var(--line);color:var(--text-1);font-size:11px;font-family:var(--font-mono);padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.02);}
 .hero-foot{
   position:relative;z-index:1;
   display:flex;justify-content:space-between;
@@ -145,14 +165,16 @@ input{font-family:inherit;}
 }
 
 /* ---------------- APP SCREEN ---------------- */
-#app{height:100vh;display:none;grid-template-columns:280px 1fr 260px;}
+#app{height:100vh;height:100dvh;display:none;grid-template-columns:280px 1fr 260px;}
 #app.active{display:grid;}
-@media (max-width:1000px){#app{grid-template-columns:80px 1fr;}#presence-panel{display:none;}}
+@media (max-width:1000px){#app{grid-template-columns:1fr;}#presence-panel{display:none;}}
 
-#sidebar{background:var(--bg-1);border-left:1px solid var(--line);display:flex;flex-direction:column;}
-.sidebar-head{padding:20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+#sidebar{background:var(--bg-1);border-left:1px solid var(--line);display:flex;flex-direction:column;transition:transform .25s ease;}
+.sidebar-head{padding:20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;justify-content:space-between;}
+.sidebar-head-left{display:flex;align-items:center;gap:10px;}
 .sidebar-head .brand-mark{width:34px;height:34px;font-size:16px;border-radius:8px;}
 .sidebar-head-text .brand-name{font-size:14px;}
+#sidebar-close-btn{display:none;color:var(--text-2);font-size:18px;padding:4px;}
 .rooms-list{flex:1;overflow-y:auto;padding:14px;}
 .rooms-label{font-family:var(--font-mono);font-size:10px;color:var(--text-2);letter-spacing:2px;padding:0 6px 8px;}
 .room-item{
@@ -160,61 +182,79 @@ input{font-family:inherit;}
   padding:12px 14px;border-radius:10px;margin-bottom:4px;
   color:var(--text-1);font-size:14px;font-weight:600;
   border:1px solid transparent;
+  transition:background .12s, border-color .12s;
 }
 .room-item:hover{background:var(--bg-2);}
 .room-item.active{background:var(--bg-2);border-color:var(--line);color:var(--text-0);}
 .room-item .dot{width:8px;height:8px;border-radius:50%;background:var(--text-2);flex-shrink:0;}
 .room-item.live .dot{background:var(--red);box-shadow:0 0 8px var(--red);}
-.room-item .rname{flex:1;}
+.room-item .rname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .add-room-btn{margin-top:6px;width:100%;padding:10px;border:1px dashed var(--line);border-radius:10px;color:var(--text-2);font-size:12px;}
 .add-room-btn:hover{border-color:var(--amber-dim);color:var(--amber-2);}
 
 .sidebar-foot{padding:16px;border-top:1px solid var(--line);}
 .me-card{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.me-avatar{width:38px;height:38px;border-radius:50%;background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--amber-2);font-size:14px;border:1px solid var(--line);}
-.me-info .me-name{font-size:13px;font-weight:700;}
+.me-avatar{width:38px;height:38px;border-radius:50%;background:var(--bg-2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--amber-2);font-size:14px;border:1px solid var(--line);flex-shrink:0;}
+.me-info{min-width:0;}
+.me-info .me-name{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .me-info .me-role{font-size:11px;color:var(--text-2);font-family:var(--font-mono);}
-.sidebar-btn{width:100%;padding:9px;border-radius:8px;font-size:12px;color:var(--text-1);border:1px solid var(--line);margin-top:6px;}
+.sidebar-btn{width:100%;padding:9px;border-radius:8px;font-size:12px;color:var(--text-1);border:1px solid var(--line);margin-top:6px;transition:background .12s,color .12s,border-color .12s;}
 .sidebar-btn:hover{background:var(--bg-2);}
 
-#main{display:flex;flex-direction:column;background:var(--bg-0);position:relative;}
-.main-head{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
-.main-head h2{font-size:16px;}
+#main{display:flex;flex-direction:column;background:var(--bg-0);position:relative;min-width:0;}
+.main-head{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.main-head-left{display:flex;align-items:center;gap:12px;min-width:0;}
+#menu-btn{display:none;font-size:20px;color:var(--text-1);flex-shrink:0;}
+.main-head h2{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .main-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--text-2);}
+#presence-toggle-btn{display:none;font-size:18px;color:var(--text-1);}
+
+#status-ticker{display:flex;gap:8px;padding:8px 22px;overflow-x:auto;border-bottom:1px solid var(--line);background:rgba(62,207,142,.03);}
+.status-chip{
+  display:flex;align-items:center;gap:6px;flex-shrink:0;
+  font-family:var(--font-mono);font-size:11px;
+  padding:6px 12px;border-radius:20px;
+  border:1px solid rgba(62,207,142,.35);color:var(--green);
+  background:rgba(62,207,142,.06);
+}
+.status-chip.panic{border-color:rgba(229,72,77,.5);color:var(--red-2);background:rgba(229,72,77,.08);}
+.status-chip .live-dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;animation:blink 1.2s infinite;}
+
 #chat-scroll{flex:1;overflow-y:auto;padding:18px 24px;display:flex;flex-direction:column;gap:12px;}
-.msg{display:flex;gap:10px;max-width:640px;}
+.msg{display:flex;gap:10px;max-width:640px;animation:msgIn .18s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 .msg .av{width:32px;height:32px;border-radius:50%;background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-1);flex-shrink:0;}
 .msg .body .meta{font-size:11px;color:var(--text-2);margin-bottom:2px;font-family:var(--font-mono);}
 .msg .body .meta b{color:var(--amber-2);font-family:var(--font-ar);}
-.msg .body .content{font-size:14px;background:var(--bg-1);padding:9px 13px;border-radius:0 10px 10px 10px;border:1px solid var(--line);}
+.msg .body .content{font-size:14px;background:var(--bg-1);padding:9px 13px;border-radius:0 10px 10px 10px;border:1px solid var(--line);word-break:break-word;}
 .msg .del-btn{opacity:0;font-size:11px;color:var(--text-2);align-self:center;}
 .msg:hover .del-btn{opacity:1;}
 .msg .del-btn:hover{color:var(--red);}
 
-#chat-form{display:flex;gap:10px;padding:16px 24px;border-top:1px solid var(--line);}
-#chat-input{flex:1;background:var(--bg-1);border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--text-0);font-size:14px;outline:none;}
+#chat-form{display:flex;gap:10px;padding:14px 22px;border-top:1px solid var(--line);}
+#chat-input{flex:1;background:var(--bg-1);border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--text-0);font-size:14px;outline:none;min-width:0;}
 #chat-input:focus{border-color:var(--amber-dim);}
-#chat-send{background:var(--bg-2);border:1px solid var(--line);padding:0 18px;border-radius:10px;color:var(--text-1);font-weight:700;}
+#chat-send{background:var(--bg-2);border:1px solid var(--line);padding:0 18px;border-radius:10px;color:var(--text-1);font-weight:700;flex-shrink:0;}
 #chat-send:hover{color:var(--amber-2);}
 
 /* Radio deck */
 #radio-deck{
-  display:flex;align-items:center;gap:18px;
-  padding:16px 24px;border-top:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;
+  padding:14px 22px;border-top:1px solid var(--line);
   background:var(--bg-1);
 }
-#vu{flex:1;height:36px;display:flex;align-items:flex-end;gap:2px;}
+#vu{flex:1;height:36px;display:flex;align-items:flex-end;gap:2px;min-width:0;}
 #vu span{flex:1;background:var(--line);border-radius:2px;height:4px;transition:height .06s;}
 #vu.live span{background:var(--amber);}
-#speaker-tag{font-family:var(--font-mono);font-size:12px;color:var(--text-1);min-width:150px;}
+#speaker-tag{font-family:var(--font-mono);font-size:12px;color:var(--text-1);min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #speaker-tag b{color:var(--red);}
 #power-btn{
   width:42px;height:42px;border-radius:50%;border:1px solid var(--line);
-  color:var(--text-1);font-size:16px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-1);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 #power-btn.off{color:var(--red);border-color:var(--red);}
 #ptt-btn{
-  width:78px;height:78px;border-radius:50%;
+  width:76px;height:76px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%, #1a2334, var(--bg-1));
   border:2px solid var(--line);
   color:var(--text-1);
@@ -239,18 +279,44 @@ input{font-family:inherit;}
 #presence-panel{background:var(--bg-1);border-right:1px solid var(--line);padding:20px;overflow-y:auto;}
 #presence-panel h3{font-size:12px;color:var(--text-2);font-family:var(--font-mono);letter-spacing:2px;margin-bottom:14px;}
 .p-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
-.p-item .av{width:30px;height:30px;border-radius:50%;background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative;}
+.p-item .av{width:30px;height:30px;border-radius:50%;background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative;flex-shrink:0;}
 .p-item .av.speaking::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--amber);animation:pulse 1s infinite;}
 @keyframes pulse{0%{opacity:1;}50%{opacity:.3;}100%{opacity:1;}}
-.p-item .info .n{font-size:12.5px;font-weight:700;}
+.p-item .info{min-width:0;}
+.p-item .info .n{font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .p-item .info .r{font-size:10.5px;color:var(--text-2);font-family:var(--font-mono);}
 
-/* Admin modal */
-.modal-bg{position:fixed;inset:0;background:rgba(4,7,12,.7);display:flex;align-items:center;justify-content:center;z-index:50;}
-.modal{background:var(--bg-1);border:1px solid var(--line);border-radius:14px;width:560px;max-width:92vw;max-height:84vh;overflow-y:auto;padding:26px;}
+/* Sidebar overlay for mobile drawer */
+#sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:39;display:none;}
+
+@media (max-width:1000px){
+  #menu-btn{display:flex;align-items:center;justify-content:center;}
+  #presence-toggle-btn{display:flex;align-items:center;justify-content:center;}
+  #sidebar{position:fixed;inset:0 auto 0 0;width:270px;z-index:40;transform:translateX(105%);}
+  html[dir="rtl"] #sidebar{transform:translateX(105%);}
+  #sidebar.open{transform:translateX(0);}
+  #sidebar-overlay.open{display:block;}
+  #presence-panel{position:fixed;inset:0 0 0 auto;width:250px;z-index:40;transform:translateX(-105%);transition:transform .25s ease;display:flex !important;flex-direction:column;border-right:none;border-left:1px solid var(--line);box-shadow:var(--shadow-lg);}
+  #presence-panel.open{transform:translateX(0);}
+}
+@media (max-width:560px){
+  .main-head{padding:12px 14px;}
+  #chat-scroll{padding:14px;}
+  #chat-form{padding:10px 12px;}
+  #radio-deck{padding:12px 14px;gap:10px;}
+  #ptt-btn{width:64px;height:64px;font-size:19px;}
+  #power-btn{width:36px;height:36px;}
+  #status-ticker{padding:8px 14px;}
+}
+
+/* ---------------- Modals (shared) ---------------- */
+.modal-bg{position:fixed;inset:0;background:rgba(4,7,12,.72);display:flex;align-items:center;justify-content:center;z-index:70;padding:16px;backdrop-filter:blur(2px);}
+.modal{background:var(--bg-1);border:1px solid var(--line);border-radius:var(--radius);width:560px;max-width:100%;max-height:88vh;overflow-y:auto;padding:26px;box-shadow:var(--shadow-lg);position:relative;}
 .modal h3{font-size:16px;margin-bottom:18px;}
 .modal .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.modal-close{position:absolute;left:20px;top:18px;}
+@media (max-width:480px){.modal .row2{grid-template-columns:1fr;}}
+.modal-close{position:absolute;left:20px;top:18px;color:var(--text-2);font-size:16px;}
+.modal-close:hover{color:var(--red);}
 .mini-table{width:100%;margin-top:16px;border-collapse:collapse;font-size:12.5px;}
 .mini-table th{text-align:right;color:var(--text-2);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line);font-size:11px;font-family:var(--font-mono);}
 .mini-table td{padding:8px 6px;border-bottom:1px solid var(--line);}
@@ -258,10 +324,149 @@ input{font-family:inherit;}
 .tag{font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--line);font-family:var(--font-mono);}
 .tiny-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);color:var(--text-1);}
 .tiny-btn:hover{border-color:var(--red);color:var(--red);}
+.big-btn{padding:13px;border-radius:10px;font-weight:700;font-size:14px;width:100%;transition:filter .12s, transform .08s;}
+.big-btn:active{transform:scale(.98);}
+.btn-amber{background:linear-gradient(180deg,var(--amber-2),var(--amber));color:#1a1200;}
+.btn-amber:hover{filter:brightness(1.08);}
+.btn-outline{border:1px solid var(--line);color:var(--text-1);}
+.btn-outline:hover{background:var(--bg-2);}
+textarea.box-textarea{width:100%;background:var(--bg-0);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--text-0);font-size:13.5px;outline:none;resize:vertical;min-height:80px;font-family:var(--font-ar);}
+textarea.box-textarea:focus{border-color:var(--amber-dim);}
 
-#toast-wrap{position:fixed;bottom:20px;left:20px;z-index:100;display:flex;flex-direction:column;gap:8px;}
-.toast{background:var(--bg-2);border:1px solid var(--line);padding:10px 16px;border-radius:8px;font-size:13px;animation:slideIn .2s;}
+#toast-wrap{position:fixed;bottom:20px;left:20px;z-index:100;display:flex;flex-direction:column;gap:8px;max-width:88vw;}
+.toast{background:var(--bg-2);border:1px solid var(--line);padding:10px 16px;border-radius:8px;font-size:13px;animation:slideIn .2s;box-shadow:0 6px 20px rgba(0,0,0,.4);}
+.toast.toast-red{border-color:var(--red);color:var(--red-2);}
+.toast.toast-green{border-color:var(--green);color:var(--green);}
 @keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ---------------- Floating action buttons (reports / panic) ---------------- */
+.fab{
+  position:fixed;
+  width:58px;height:58px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  z-index:45;
+  box-shadow:0 10px 26px rgba(0,0,0,.45);
+  transition:transform .12s, box-shadow .12s;
+  border:1px solid var(--line);
+}
+.fab:active{transform:scale(.94);}
+#reports-fab{
+  left:22px;bottom:22px;
+  background:linear-gradient(160deg,var(--bg-3),var(--bg-1));
+  color:var(--amber-2);
+  border-color:var(--amber-dim);
+}
+#reports-fab:hover{box-shadow:0 10px 30px rgba(234,179,8,.25);}
+.fab-badge{
+  position:absolute;top:-4px;left:-4px;
+  background:var(--red);color:#fff;
+  font-family:var(--font-mono);font-size:10px;font-weight:700;
+  min-width:19px;height:19px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 4px;
+  box-shadow:0 0 0 2px var(--bg-0);
+}
+#panic-fab{
+  left:22px;bottom:92px;
+  background:linear-gradient(160deg,#3a0f11,#1a0607);
+  color:var(--red-2);
+  border-color:var(--red);
+  animation:panicIdle 2.6s infinite;
+}
+@keyframes panicIdle{0%,100%{box-shadow:0 10px 26px rgba(0,0,0,.45);}50%{box-shadow:0 10px 26px rgba(229,72,77,.35);}}
+@media (max-width:560px){
+  #reports-fab{left:14px;bottom:14px;width:52px;height:52px;font-size:21px;}
+  #panic-fab{left:14px;bottom:78px;width:52px;height:52px;font-size:19px;}
+}
+
+/* ---------------- Floating draggable reports panel ---------------- */
+.floating-panel{
+  position:fixed;
+  width:360px;max-width:92vw;
+  background:var(--bg-1);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);
+  z-index:60;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  max-height:82vh;
+}
+.fp-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--line);
+  background:var(--bg-2);
+  cursor:grab;
+  font-weight:700;font-size:13.5px;
+  touch-action:none;
+  user-select:none;-webkit-user-select:none;
+}
+.fp-head:active{cursor:grabbing;}
+.fp-head-actions{display:flex;gap:6px;}
+.fp-head-actions button{
+  width:26px;height:26px;border-radius:7px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-1);
+}
+.fp-head-actions button:hover{border-color:var(--amber-dim);color:var(--amber-2);}
+.fp-body{padding:16px;overflow-y:auto;flex:1;}
+
+#my-active-report{
+  border:1px solid var(--green);background:rgba(62,207,142,.06);
+  border-radius:10px;padding:12px;margin-bottom:14px;font-size:12.5px;
+}
+#my-active-report .mar-title{color:var(--green);font-weight:700;font-family:var(--font-mono);font-size:11px;margin-bottom:6px;}
+#my-active-report .mar-loc{font-weight:700;font-size:14px;margin-bottom:8px;}
+
+#reports-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;}
+#reports-nav button{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-1);flex-shrink:0;
+}
+#reports-nav button:hover:not(:disabled){border-color:var(--amber-dim);color:var(--amber-2);}
+#reports-nav button:disabled{opacity:.3;cursor:default;}
+#report-counter{font-family:var(--font-mono);font-size:11.5px;color:var(--text-2);}
+
+.report-card{
+  background:var(--bg-0);border:1px solid var(--line);border-radius:12px;padding:16px;
+}
+.report-card.panic{border-color:var(--red);background:rgba(229,72,77,.05);}
+.report-card .rc-badge{display:inline-block;font-family:var(--font-mono);font-size:10px;color:var(--amber-2);border:1px solid var(--amber-dim);padding:2px 9px;border-radius:10px;margin-bottom:10px;}
+.report-card .rc-loc{font-size:17px;font-weight:900;margin-bottom:6px;}
+.report-card .rc-desc{font-size:13px;color:var(--text-1);line-height:1.7;margin-bottom:12px;min-height:20px;}
+.report-card .rc-meta{font-family:var(--font-mono);font-size:10.5px;color:var(--text-2);display:flex;justify-content:space-between;margin-bottom:14px;}
+.report-card .rc-actions{display:flex;gap:8px;}
+.report-card .rc-actions button{flex:1;padding:11px;border-radius:9px;font-weight:700;font-size:13px;}
+.rc-accept{background:linear-gradient(180deg,#4fe0a0,var(--green));color:#052015;}
+.rc-accept:hover{filter:brightness(1.06);}
+.rc-reject{border:1px solid var(--red);color:var(--red-2);}
+.rc-reject:hover{background:rgba(229,72,77,.08);}
+.rc-empty{text-align:center;color:var(--text-2);font-size:13px;padding:30px 10px;}
+
+/* ---------------- Panic full-screen overlay ---------------- */
+.panic-overlay-bg{
+  position:fixed;inset:0;z-index:90;
+  background:radial-gradient(circle at 50% 30%, rgba(229,72,77,.18), rgba(4,4,6,.92));
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+}
+.panic-overlay-bg .po-card{
+  width:460px;max-width:100%;
+  background:var(--bg-1);border:2px solid var(--red);border-radius:18px;
+  padding:30px;text-align:center;
+  box-shadow:0 0 60px rgba(229,72,77,.35);
+  animation:panicPulse 1.1s infinite;
+}
+@keyframes panicPulse{0%,100%{box-shadow:0 0 40px rgba(229,72,77,.25);}50%{box-shadow:0 0 70px rgba(229,72,77,.5);}}
+.panic-overlay-bg .po-icon{font-size:46px;margin-bottom:10px;}
+.panic-overlay-bg .po-title{color:var(--red-2);font-weight:900;font-size:22px;margin-bottom:6px;letter-spacing:1px;}
+.panic-overlay-bg .po-loc{font-size:26px;font-weight:900;margin:14px 0;}
+.panic-overlay-bg .po-meta{font-family:var(--font-mono);font-size:11.5px;color:var(--text-2);margin-bottom:20px;}
+.panic-overlay-bg .po-responders{font-size:12px;color:var(--text-1);margin-bottom:18px;min-height:18px;}
+.panic-overlay-bg .po-actions{display:flex;flex-direction:column;gap:10px;}
+.panic-overlay-bg .po-join{background:linear-gradient(180deg,var(--red-2),var(--red));color:#2a0505;font-weight:800;padding:15px;border-radius:11px;font-size:15px;}
+.panic-overlay-bg .po-finish{border:1px solid var(--line);color:var(--text-1);padding:12px;border-radius:11px;font-size:13px;}
+.panic-overlay-bg .po-finish:hover{border-color:var(--red);color:var(--red-2);}
 </style>
 </head>
 <body>
@@ -271,7 +476,14 @@ input{font-family:inherit;}
   <div id="login-left">
     <div class="badge-status">وضع الاتصال الآمن — بانتظار المصادقة</div>
     <div class="login-title">تسجيل الدخول</div>
-    <div class="login-sub">أدخل رمز الاعتماد الخاص بك للانضمام إلى شبكة الاتصال. الرمز صادر من إدارة النظام ولا يُشارك.</div>
+    <div class="login-sub">أدخل بريدك الإلكتروني ورمز الاعتماد الخاص بك للانضمام إلى شبكة الاتصال. الرمز صادر من إدارة النظام ولا يُشارك.</div>
+    <div class="field">
+      <label>البريد الإلكتروني</label>
+      <div class="box">
+        <input id="email-input" type="email" placeholder="name@example.com" autocomplete="username">
+        <span class="icon">✉️</span>
+      </div>
+    </div>
     <div class="field">
       <label>رمز الاعتماد</label>
       <div class="box">
@@ -294,23 +506,33 @@ input{font-family:inherit;}
     <div class="hero">
       <div class="hero-eyebrow">SECURE OPERATIONS NETWORK</div>
       <h1>موجة واحدة.<br><span class="accent">قرار أسرع.</span></h1>
-      <p>مساحة اتصال مركّزة للفرق التي لا تحتمل رفاهية فقدان الإشارة. القنوات، الأفراد، والقرار في مكان واحد.</p>
+      <p>مساحة اتصال مركّزة للفرق التي لا تحتمل رفاهية فقدان الإشارة. القنوات، الأفراد، والبلاغات في مكان واحد.</p>
+      <div class="feature-chips">
+        <span>🎙 نداء لاسلكي حي</span>
+        <span>📋 بلاغات فورية</span>
+        <span>🚨 زر طوارئ</span>
+        <span>📱 يعمل على كل الأجهزة</span>
+      </div>
     </div>
     <div class="hero-foot">
-      <span>v1.0 / LIVE NODE</span>
+      <span>v2.0 / LIVE NODE</span>
       <span>مرخّص للأفراد المعتمدين فقط</span>
     </div>
   </div>
 </div>
 
 <!-- ================= APP ================= -->
+<div id="sidebar-overlay"></div>
 <div id="app">
   <div id="sidebar">
     <div class="sidebar-head">
-      <div class="brand-mark">📻</div>
-      <div class="sidebar-head-text">
-        <div class="brand-name">شبكة الراديو</div>
+      <div class="sidebar-head-left">
+        <div class="brand-mark">📻</div>
+        <div class="sidebar-head-text">
+          <div class="brand-name">شبكة الراديو</div>
+        </div>
       </div>
+      <button id="sidebar-close-btn">✕</button>
     </div>
     <div class="rooms-list">
       <div class="rooms-label">الموجات</div>
@@ -332,11 +554,16 @@ input{font-family:inherit;}
 
   <div id="main">
     <div class="main-head">
-      <div>
-        <h2 id="room-title">—</h2>
-        <div class="sub" id="room-sub">CHANNEL IDLE</div>
+      <div class="main-head-left">
+        <button id="menu-btn">☰</button>
+        <div>
+          <h2 id="room-title">—</h2>
+          <div class="sub" id="room-sub">CHANNEL IDLE</div>
+        </div>
       </div>
+      <button id="presence-toggle-btn">👥</button>
     </div>
+    <div id="status-ticker" class="hidden"></div>
     <div id="chat-scroll"></div>
     <form id="chat-form">
       <input id="chat-input" placeholder="اكتب رسالة..." autocomplete="off">
@@ -344,7 +571,7 @@ input{font-family:inherit;}
     </form>
     <div id="radio-deck">
       <button id="power-btn" title="كتم/تشغيل الاستقبال">🔊</button>
-      <div style="flex:1;">
+      <div style="flex:1;min-width:0;">
         <div id="vu"></div>
         <div id="speaker-tag">القناة صامتة</div>
       </div>
@@ -358,6 +585,30 @@ input{font-family:inherit;}
   <div id="presence-panel">
     <h3>المتواجدون الآن</h3>
     <div id="presence-list"></div>
+  </div>
+</div>
+
+<!-- Floating action buttons -->
+<button id="reports-fab" class="fab hidden" title="البلاغات">📋<span id="reports-badge" class="fab-badge hidden">0</span></button>
+<button id="panic-fab" class="fab hidden" title="بلاغ طارئ">🚨</button>
+
+<!-- Draggable reports panel -->
+<div id="reports-panel" class="floating-panel hidden">
+  <div class="fp-head" id="reports-drag-handle">
+    <span>📋 البلاغات</span>
+    <div class="fp-head-actions">
+      <button id="reports-add-btn" title="بلاغ جديد">+</button>
+      <button id="reports-close-btn" title="إغلاق">✕</button>
+    </div>
+  </div>
+  <div class="fp-body">
+    <div id="my-active-report" class="hidden"></div>
+    <div id="reports-nav">
+      <button id="report-next" title="الأحدث">‹ الأحدث</button>
+      <div id="report-counter">0 / 0</div>
+      <button id="report-prev" title="الأقدم">الأقدم ›</button>
+    </div>
+    <div id="report-card-wrap"></div>
   </div>
 </div>
 
@@ -375,11 +626,12 @@ let currentSpeakerSocketId = null;
 let isMuted = false;
 
 /* ============ TOAST ============ */
-function toast(msg){
+function toast(msg, kind){
   const el = document.createElement('div');
-  el.className='toast'; el.textContent = msg;
+  el.className='toast' + (kind ? ' toast-'+kind : '');
+  el.textContent = msg;
   document.getElementById('toast-wrap').appendChild(el);
-  setTimeout(()=>el.remove(), 3500);
+  setTimeout(()=>el.remove(), 3800);
 }
 
 /* ============ AUDIO ENGINE (radio effect) ============ */
@@ -396,21 +648,41 @@ function buildDistortionCurve(amount){
   return curve;
 }
 
+function buildStaticNoiseBuffer(){
+  const len = audioCtx.sampleRate * 2;
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i=0;i<len;i++) data[i] = (Math.random()*2-1) * 0.35;
+  return buf;
+}
+
 async function buildRadioProcessedStream(){
   micStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true } });
   const src = audioCtx.createMediaStreamSource(micStream);
-  const bandpass = audioCtx.createBiquadFilter();
-  bandpass.type='bandpass'; bandpass.frequency.value=1500; bandpass.Q.value=0.7;
   const highpass = audioCtx.createBiquadFilter();
   highpass.type='highpass'; highpass.frequency.value=300;
+  const bandpass = audioCtx.createBiquadFilter();
+  bandpass.type='bandpass'; bandpass.frequency.value=1500; bandpass.Q.value=0.7;
   const shaper = audioCtx.createWaveShaper();
   shaper.curve = buildDistortionCurve(14); shaper.oversample='2x';
   const comp = audioCtx.createDynamicsCompressor();
   comp.threshold.value=-28; comp.ratio.value=9; comp.attack.value=0.003; comp.release.value=0.15;
   const gain = audioCtx.createGain(); gain.gain.value = 1.6;
-  const dest = audioCtx.createMediaStreamDestination();
 
-  src.connect(highpass).connect(bandpass).connect(shaper).connect(comp).connect(gain).connect(dest);
+  // subtle static/hiss bed mixed underneath, for radio authenticity
+  const noiseSrc = audioCtx.createBufferSource();
+  noiseSrc.buffer = buildStaticNoiseBuffer(); noiseSrc.loop = true;
+  const noiseFilter = audioCtx.createBiquadFilter();
+  noiseFilter.type='bandpass'; noiseFilter.frequency.value=2200; noiseFilter.Q.value=0.5;
+  const noiseGain = audioCtx.createGain(); noiseGain.gain.value = 0.02;
+  noiseSrc.connect(noiseFilter).connect(noiseGain);
+  noiseSrc.start();
+
+  const dest = audioCtx.createMediaStreamDestination();
+  src.connect(highpass).connect(bandpass).connect(shaper).connect(comp).connect(gain);
+  gain.connect(dest);
+  noiseGain.connect(dest);
+
   analyser = audioCtx.createAnalyser(); analyser.fftSize = 64;
   gain.connect(analyser);
 
@@ -423,21 +695,12 @@ function stopMic(){
   micStream = null; processedTrack = null;
 }
 
-/* Synthesized beep (no external files) */
-function beep(freqStart, freqEnd, dur=0.14){
-  const o = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  o.type='square';
-  o.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
-  o.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime+dur);
-  g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.15, audioCtx.currentTime+0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
-  o.connect(g).connect(audioCtx.destination);
-  o.start(); o.stop(audioCtx.currentTime+dur+0.02);
-}
-const beepOn = ()=>beep(700,1100);
-const beepOff = ()=>beep(1100,600);
+/* Button press/release sounds — provided mp3 files */
+const pressSound = new Audio('/audio/press.mp3');
+const releaseSound = new Audio('/audio/release.mp3');
+pressSound.preload = 'auto'; releaseSound.preload = 'auto';
+function beepOn(){ try{ pressSound.currentTime = 0; pressSound.play().catch(()=>{}); }catch(e){} }
+function beepOff(){ try{ releaseSound.currentTime = 0; releaseSound.play().catch(()=>{}); }catch(e){} }
 
 /* VU meter */
 const vuEl = document.getElementById('vu');
@@ -483,7 +746,6 @@ async function listenerHandleOffer(fromSocketId, sdp){
   pc.ontrack = (e)=>{
     remoteAudio.srcObject = e.streams[0];
     if(!isMuted) remoteAudio.play().catch(()=>{});
-    // hook analyser to incoming audio too, so listener also sees VU
     const srcNode = audioCtx.createMediaStreamSource(e.streams[0]);
     analyser = audioCtx.createAnalyser(); analyser.fftSize=64;
     srcNode.connect(analyser);
@@ -503,15 +765,18 @@ function teardownRTC(){
 
 /* ============ LOGIN ============ */
 document.getElementById('login-btn').onclick = doLogin;
+document.getElementById('email-input').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 document.getElementById('code-input').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 
 async function doLogin(){
+  const email = document.getElementById('email-input').value.trim();
   const code = document.getElementById('code-input').value.trim();
   const errEl = document.getElementById('login-error');
   errEl.textContent='';
-  if(!code){ errEl.textContent='أدخل الرمز أولاً'; return; }
+  if(!email){ errEl.textContent='أدخل البريد الإلكتروني'; return; }
+  if(!code){ errEl.textContent='أدخل الرمز'; return; }
   try{
-    const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code}) });
+    const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, code}) });
     const data = await res.json();
     if(!res.ok){ errEl.textContent = data.error || 'تعذر الدخول'; return; }
     token = data.token; me = data.user;
@@ -532,10 +797,26 @@ document.getElementById('logout-btn').onclick = ()=>{
   location.reload();
 };
 
+/* ============ MOBILE NAV (sidebar drawer / presence drawer) ============ */
+const sidebarEl = document.getElementById('sidebar');
+const presenceEl = document.getElementById('presence-panel');
+const overlayEl = document.getElementById('sidebar-overlay');
+function openSidebar(){ sidebarEl.classList.add('open'); overlayEl.classList.add('open'); }
+function closeSidebar(){ sidebarEl.classList.remove('open'); overlayEl.classList.remove('open'); presenceEl.classList.remove('open'); }
+document.getElementById('menu-btn').onclick = openSidebar;
+document.getElementById('sidebar-close-btn').onclick = closeSidebar;
+overlayEl.onclick = closeSidebar;
+document.getElementById('presence-toggle-btn').onclick = ()=>{
+  presenceEl.classList.toggle('open');
+  overlayEl.classList.toggle('open', presenceEl.classList.contains('open'));
+};
+
 /* ============ ENTER APP ============ */
 async function enterApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').classList.add('active');
+  document.getElementById('reports-fab').classList.remove('hidden');
+  document.getElementById('panic-fab').classList.remove('hidden');
   document.getElementById('me-name').textContent = me.name;
   document.getElementById('me-avatar').textContent = me.name.slice(0,1);
   const roleLabel = {owner:'المالك', admin_high:'إداري أول', admin_low:'إداري', member:'عضو'}[me.role] || me.role;
@@ -546,8 +827,8 @@ async function enterApp(){
   }
 
   socket = io({ auth:{ token } });
-  socket.on('connect_error', ()=> toast('تعذر الاتصال بالخادم'));
-  socket.on('banned', ()=>{ toast('تم حظر حسابك'); setTimeout(()=>{ localStorage.removeItem('radio_token'); location.reload(); }, 1200); });
+  socket.on('connect_error', ()=> toast('تعذر الاتصال بالخادم', 'red'));
+  socket.on('banned', ()=>{ toast('تم حظر حسابك', 'red'); setTimeout(()=>{ localStorage.removeItem('radio_token'); location.reload(); }, 1200); });
 
   socket.on('presence:list', renderPresence);
   socket.on('chat:new', appendMessage);
@@ -556,7 +837,7 @@ async function enterApp(){
 
   socket.on('ptt:started', ({userId, name, socketId})=>{
     currentSpeakerSocketId = socketId;
-    document.getElementById('speaker-tag').innerHTML = '<b>● يتحدث الآن:</b> '+name;
+    document.getElementById('speaker-tag').innerHTML = '<b>● يتحدث الآن:</b> '+escapeHtml(name);
     document.getElementById('vu').classList.add('live');
     document.getElementById('ptt-btn').classList.add('locked');
     document.querySelectorAll('.p-item .av').forEach(a=>a.classList.remove('speaking'));
@@ -589,7 +870,40 @@ async function enterApp(){
 
   function listenerAwaitOffer(){ /* offer arrives via rtc:offer event automatically */ }
 
+  /* ---- reports realtime events ---- */
+  socket.on('report:new', (r)=>{
+    reports.push(r);
+    reportIndex = reports.filter(isBrowsable).length - 1;
+    refreshReportsUI();
+    if (r.reporter_id !== me.id) toast('📋 بلاغ جديد: '+r.location);
+  });
+  socket.on('report:accepted', (r)=>{
+    upsertReport(r);
+    refreshReportsUI();
+    updateStatusTicker();
+    if (r.accepted_by_id === me.id && !r.is_panic) toast('استلمت البلاغ: '+r.location, 'green');
+    else toast('🟢 '+(r.accepted_by_name||'أحدهم')+' استلم بلاغ: '+r.location, 'green');
+  });
+  socket.on('report:rejected', (r)=>{ upsertReport(r); refreshReportsUI(); });
+  socket.on('report:finished', ({report, finishedBy})=>{
+    upsertReport(report);
+    refreshReportsUI();
+    updateStatusTicker();
+    toast('✅ تم إنهاء البلاغ: '+report.location+' — بواسطة '+finishedBy, 'green');
+    if (activeReportModalId === report.id) closeMyActiveReport();
+  });
+  socket.on('report:panic', (r)=>{
+    if (!panicOverlayIds.has(r.id)) showPanicOverlay(r);
+    upsertReport(r);
+    refreshReportsUI();
+    updateStatusTicker();
+  });
+  socket.on('report:panic_resolved', ({reportId})=>{
+    closePanicOverlay(reportId);
+  });
+
   await loadRooms();
+  await loadReports();
   if (me.role==='admin_high' || me.role==='owner') await loadAdminUsers();
 }
 
@@ -607,7 +921,7 @@ function renderRooms(){
     const div = document.createElement('div');
     div.className = 'room-item' + (currentRoom===r.id ? ' active':'');
     div.innerHTML = '<span class="dot"></span><span class="rname">'+escapeHtml(r.name)+'</span>';
-    div.onclick = ()=>joinRoom(r.id);
+    div.onclick = ()=>{ joinRoom(r.id); closeSidebar(); };
     c.appendChild(div);
   });
 }
@@ -725,7 +1039,7 @@ function openAdmin(){
       <h3>لوحة الإدارة</h3>
       <div class="row2">
         <div class="field"><label>الاسم</label><div class="box"><input id="nu-name"></div></div>
-        <div class="field"><label>البريد</label><div class="box"><input id="nu-email"></div></div>
+        <div class="field"><label>البريد (يستخدمه للدخول)</label><div class="box"><input id="nu-email" type="email"></div></div>
         <div class="field"><label>الرتبة</label><div class="box"><input id="nu-rank"></div></div>
         <div class="field"><label>القطاع</label><div class="box"><input id="nu-dept"></div></div>
       </div>
@@ -738,7 +1052,7 @@ function openAdmin(){
         </select></div></div>` : ''}
       <button id="nu-create" class="sidebar-btn" style="border-color:var(--amber-dim);color:var(--amber-2);">+ إنشاء رمز جديد</button>
       <table class="mini-table">
-        <thead><tr><th>الاسم</th><th>الرمز</th><th>الصلاحية</th><th></th></tr></thead>
+        <thead><tr><th>الاسم</th><th>البريد</th><th>الرمز</th><th>الصلاحية</th><th></th></tr></thead>
         <tbody id="admin-table-body"></tbody>
       </table>
     </div>`;
@@ -756,12 +1070,13 @@ function openAdmin(){
       role: me.role==='owner' ? bg.querySelector('#nu-role').value : 'member'
     };
     if(!body.name.trim()){ toast('الاسم مطلوب'); return; }
+    if(!body.email.trim()){ toast('البريد الإلكتروني مطلوب'); return; }
     const res = await fetch('/api/admin/users', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify(body) });
     const data = await res.json();
     if(!res.ok){ toast(data.error); return; }
     adminUsers.push(data);
     renderAdminTable();
-    toast('تم إنشاء الرمز: '+data.code);
+    toast('تم إنشاء الرمز: '+data.code+' — أرسله مع البريد للشخص، الرمز ثابت ولا يتغير', 'green');
   };
 
   function renderAdminTable(){
@@ -770,7 +1085,7 @@ function openAdmin(){
     adminUsers.forEach(u=>{
       const tr = document.createElement('tr');
       const roleLabel = {owner:'المالك', admin_high:'إداري أول', admin_low:'إداري', member:'عضو'}[u.role];
-      tr.innerHTML = `<td>${escapeHtml(u.name)}</td><td class="code">${u.code}</td>
+      tr.innerHTML = `<td>${escapeHtml(u.name)}</td><td style="font-family:var(--font-mono);font-size:11px;">${escapeHtml(u.email||'—')}</td><td class="code">${u.code}</td>
         <td><span class="tag">${roleLabel}</span> ${u.banned?'<span class="tag" style="color:var(--red);border-color:var(--red);">محظور</span>':''}</td>
         <td></td>`;
       const actionsTd = tr.lastElementChild;
@@ -797,6 +1112,297 @@ function openAdmin(){
     });
   }
 }
+
+/* ================= REPORTS (البلاغات) ================= */
+let reports = [];              // all reports we know about
+let reportIndex = 0;           // index within browsable (pending, non-panic) list
+let activeReportModalId = null;
+const panicOverlayIds = new Set();
+const activeResponders = new Map(); // reportId -> {location, names:[]}
+
+function isBrowsable(r){ return r.status === 'pending' && !r.is_panic; }
+function upsertReport(r){
+  const idx = reports.findIndex(x=>x.id===r.id);
+  if(idx>=0) reports[idx] = r; else reports.push(r);
+}
+
+async function loadReports(){
+  const res = await fetch('/api/reports', { headers:{Authorization:'Bearer '+token} });
+  if(!res.ok) return;
+  reports = await res.json();
+  const browsable = reports.filter(isBrowsable);
+  reportIndex = browsable.length ? browsable.length - 1 : 0;
+  refreshReportsUI();
+  updateStatusTicker();
+  // any still-open panic reports (e.g. after refresh) get handled via socket on connect
+}
+
+function myActiveNormalReport(){
+  return reports.find(r => r.status==='accepted' && !r.is_panic && r.accepted_by_id === me.id);
+}
+
+function refreshReportsUI(){
+  // badge = count of pending non-panic reports
+  const pendingCount = reports.filter(isBrowsable).length;
+  const badge = document.getElementById('reports-badge');
+  if(pendingCount>0){ badge.textContent = pendingCount; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+
+  // my active report box
+  const mine = myActiveNormalReport();
+  const marBox = document.getElementById('my-active-report');
+  if(mine){
+    marBox.classList.remove('hidden');
+    marBox.innerHTML = `
+      <div class="mar-title">📍 بلاغك النشط الآن</div>
+      <div class="mar-loc">${escapeHtml(mine.location)}</div>
+      <button class="big-btn btn-amber" id="finish-my-report-btn">إنهاء البلاغ</button>
+    `;
+    marBox.querySelector('#finish-my-report-btn').onclick = ()=> confirmFinishReport(mine);
+  } else {
+    marBox.classList.add('hidden'); marBox.innerHTML='';
+  }
+
+  renderReportCard();
+}
+
+function renderReportCard(){
+  const browsable = reports.filter(isBrowsable);
+  const wrap = document.getElementById('report-card-wrap');
+  const counter = document.getElementById('report-counter');
+  const prevBtn = document.getElementById('report-prev');
+  const nextBtn = document.getElementById('report-next');
+
+  if(!browsable.length){
+    wrap.innerHTML = '<div class="rc-empty">لا توجد بلاغات معلّقة حالياً 👌</div>';
+    counter.textContent = '0 / 0';
+    prevBtn.disabled = true; nextBtn.disabled = true;
+    return;
+  }
+  if(reportIndex >= browsable.length) reportIndex = browsable.length-1;
+  if(reportIndex < 0) reportIndex = 0;
+  const r = browsable[reportIndex];
+  counter.textContent = (reportIndex+1)+' / '+browsable.length;
+  prevBtn.disabled = reportIndex <= 0;
+  nextBtn.disabled = reportIndex >= browsable.length-1;
+
+  wrap.innerHTML = `
+    <div class="report-card">
+      <span class="rc-badge">بلاغ من ${escapeHtml(r.reporter_name)}</span>
+      <div class="rc-loc">📍 ${escapeHtml(r.location)}</div>
+      <div class="rc-desc">${r.details ? escapeHtml(r.details) : '<span style="color:var(--text-2)">لا يوجد وصف إضافي</span>'}</div>
+      <div class="rc-meta"><span>${r.created_at}</span><span>#${r.id}</span></div>
+      <div class="rc-actions">
+        <button class="rc-reject" id="rc-reject-btn">رفض</button>
+        <button class="rc-accept" id="rc-accept-btn">قبول البلاغ</button>
+      </div>
+    </div>
+  `;
+  wrap.querySelector('#rc-accept-btn').onclick = ()=> acceptReport(r);
+  wrap.querySelector('#rc-reject-btn').onclick = ()=> rejectReport(r);
+}
+
+document.getElementById('report-prev').onclick = ()=>{ reportIndex--; renderReportCard(); };
+document.getElementById('report-next').onclick = ()=>{ reportIndex++; renderReportCard(); };
+
+async function acceptReport(r){
+  const res = await fetch('/api/reports/'+r.id+'/accept', { method:'POST', headers:{Authorization:'Bearer '+token} });
+  const data = await res.json();
+  if(!res.ok){ toast(data.error, 'red'); return; }
+}
+async function rejectReport(r){
+  const res = await fetch('/api/reports/'+r.id+'/reject', { method:'POST', headers:{Authorization:'Bearer '+token} });
+  const data = await res.json();
+  if(!res.ok){ toast(data.error, 'red'); return; }
+}
+function confirmFinishReport(r){
+  const bg = document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML = `
+    <div class="modal" style="width:380px;text-align:center;">
+      <h3>تأكيد إنهاء البلاغ</h3>
+      <p style="color:var(--text-1);font-size:13.5px;margin-bottom:20px;">هل تريد تأكيد إنهاء البلاغ في «${escapeHtml(r.location)}»؟</p>
+      <div style="display:flex;gap:10px;">
+        <button class="big-btn btn-outline" id="cf-cancel">تراجع</button>
+        <button class="big-btn btn-amber" id="cf-confirm">تأكيد الإنهاء</button>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+  bg.onclick = (e)=>{ if(e.target===bg) bg.remove(); };
+  bg.querySelector('#cf-cancel').onclick = ()=> bg.remove();
+  bg.querySelector('#cf-confirm').onclick = async ()=>{
+    bg.remove();
+    const res = await fetch('/api/reports/'+r.id+'/finish', { method:'POST', headers:{Authorization:'Bearer '+token} });
+    const data = await res.json();
+    if(!res.ok) toast(data.error, 'red');
+  };
+}
+function closeMyActiveReport(){ activeReportModalId = null; refreshReportsUI(); }
+
+/* ---- new report modal ---- */
+document.getElementById('reports-add-btn').onclick = openNewReportModal;
+function openNewReportModal(){
+  const bg = document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML = `
+    <div class="modal" style="width:440px;">
+      <button class="modal-close">✕</button>
+      <h3>+ رفع بلاغ جديد</h3>
+      <div class="field"><label>اسم الموقع</label><div class="box"><input id="nr-loc" placeholder="مثال: شارع الملك فهد، بجانب البنك"></div></div>
+      <div class="field"><label>ماذا حدث؟</label><textarea class="box-textarea" id="nr-desc" placeholder="اكتب تفاصيل ما حصل..."></textarea></div>
+      <button class="big-btn btn-amber" id="nr-submit">رفع البلاغ</button>
+    </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('.modal-close').onclick = ()=> bg.remove();
+  bg.onclick = (e)=>{ if(e.target===bg) bg.remove(); };
+  bg.querySelector('#nr-submit').onclick = async ()=>{
+    const location = bg.querySelector('#nr-loc').value.trim();
+    const details = bg.querySelector('#nr-desc').value.trim();
+    if(!location){ toast('اكتب اسم الموقع'); return; }
+    const res = await fetch('/api/reports', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({location, details}) });
+    const data = await res.json();
+    if(!res.ok){ toast(data.error, 'red'); return; }
+    bg.remove();
+    toast('تم رفع البلاغ', 'green');
+    openReportsPanel();
+  };
+}
+
+/* ---- panic button ---- */
+document.getElementById('panic-fab').onclick = ()=>{
+  const bg = document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML = `
+    <div class="modal" style="width:400px;border-color:var(--red);">
+      <button class="modal-close">✕</button>
+      <h3 style="color:var(--red-2);">🚨 بلاغ طوارئ (بانيك)</h3>
+      <p style="color:var(--text-1);font-size:12.5px;margin-bottom:14px;">اكتب الموقع فقط — سيظهر فوراً للجميع كأولوية قصوى.</p>
+      <div class="field"><label>الموقع</label><div class="box"><input id="pn-loc" placeholder="مكانك الآن..."></div></div>
+      <button class="big-btn" style="background:linear-gradient(180deg,var(--red-2),var(--red));color:#2a0505;" id="pn-submit">إرسال نداء الطوارئ</button>
+    </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('.modal-close').onclick = ()=> bg.remove();
+  bg.onclick = (e)=>{ if(e.target===bg) bg.remove(); };
+  const input = bg.querySelector('#pn-loc');
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') submitPanic(); });
+  bg.querySelector('#pn-submit').onclick = submitPanic;
+  async function submitPanic(){
+    const location = input.value.trim();
+    if(!location){ toast('اكتب الموقع'); return; }
+    const res = await fetch('/api/reports/panic', { method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}, body:JSON.stringify({location}) });
+    const data = await res.json();
+    if(!res.ok){ toast(data.error, 'red'); return; }
+    bg.remove();
+  }
+};
+
+/* ---- panic full-screen overlay (forced for everyone) ---- */
+function showPanicOverlay(r){
+  panicOverlayIds.add(r.id);
+  const ov = document.createElement('div');
+  ov.className = 'panic-overlay-bg';
+  ov.dataset.reportId = r.id;
+  ov.innerHTML = `
+    <div class="po-card">
+      <div class="po-icon">🚨</div>
+      <div class="po-title">نداء طوارئ — استجابة فورية</div>
+      <div class="po-loc">📍 ${escapeHtml(r.location)}</div>
+      <div class="po-meta">من: ${escapeHtml(r.reporter_name)} · ${r.created_at}</div>
+      <div class="po-responders" id="po-responders-${r.id}"></div>
+      <div class="po-actions">
+        <button class="po-join" id="po-join-${r.id}">قبول والاستجابة الآن</button>
+        <button class="po-finish" id="po-finish-${r.id}">إنهاء البلاغ (بعد الوصول)</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  updatePanicRespondersLabel(r);
+  ov.querySelector('#po-join-'+r.id).onclick = async ()=>{
+    const res = await fetch('/api/reports/'+r.id+'/accept', { method:'POST', headers:{Authorization:'Bearer '+token} });
+    const data = await res.json();
+    if(!res.ok) toast(data.error, 'red');
+  };
+  ov.querySelector('#po-finish-'+r.id).onclick = ()=>{
+    confirmFinishReport(r);
+  };
+}
+function updatePanicRespondersLabel(r){
+  const el = document.getElementById('po-responders-'+r.id);
+  if(!el) return;
+  const names = (r.responders||[]).map(x=>x.name);
+  el.textContent = names.length ? ('🟢 يستجيب الآن: '+names.join('، ')) : 'لا أحد استجاب بعد...';
+}
+function closePanicOverlay(reportId){
+  panicOverlayIds.delete(reportId);
+  const ov = document.querySelector('.panic-overlay-bg[data-report-id="'+reportId+'"]');
+  ov?.remove();
+}
+
+/* keep panic overlay responders label live-updated when accepted events come in */
+const _origAcceptedHandlerHook = true;
+
+/* ---- status ticker (who is currently responding to what) ---- */
+function updateStatusTicker(){
+  activeResponders.clear();
+  reports.forEach(r=>{
+    if(r.status !== 'accepted') return;
+    const names = r.is_panic ? (r.responders||[]).map(x=>x.name) : [r.accepted_by_name];
+    if(!names.length) return;
+    activeResponders.set(r.id, { location: r.location, names, panic: !!r.is_panic });
+  });
+  const ticker = document.getElementById('status-ticker');
+  if(!activeResponders.size){ ticker.classList.add('hidden'); ticker.innerHTML=''; return; }
+  ticker.classList.remove('hidden');
+  ticker.innerHTML = '';
+  activeResponders.forEach(({location, names, panic})=>{
+    const chip = document.createElement('div');
+    chip.className = 'status-chip' + (panic ? ' panic' : '');
+    chip.innerHTML = `<span class="live-dot"></span>${panic?'🚨':''} ${escapeHtml(names.join('، '))} — يستجيب في: ${escapeHtml(location)}`;
+    ticker.appendChild(chip);
+  });
+  // refresh any open panic overlays' responder labels
+  reports.filter(r=>r.is_panic && panicOverlayIds.has(r.id)).forEach(updatePanicRespondersLabel);
+}
+
+/* ---- reports panel open/close + drag ---- */
+const reportsPanel = document.getElementById('reports-panel');
+document.getElementById('reports-fab').onclick = openReportsPanel;
+document.getElementById('reports-close-btn').onclick = ()=> reportsPanel.classList.add('hidden');
+function openReportsPanel(){
+  reportsPanel.classList.remove('hidden');
+  if(!reportsPanel.style.top){
+    // first open — position near the fab
+    const vw = window.innerWidth, vh = window.innerHeight;
+    reportsPanel.style.left = Math.min(90, vw-380) + 'px';
+    reportsPanel.style.top = Math.max(20, vh - 560) + 'px';
+  }
+  refreshReportsUI();
+}
+
+function makeDraggable(panel, handle){
+  let dragging = false, startX=0, startY=0, origLeft=0, origTop=0;
+  handle.addEventListener('pointerdown', (e)=>{
+    dragging = true;
+    handle.setPointerCapture(e.pointerId);
+    const rect = panel.getBoundingClientRect();
+    origLeft = rect.left; origTop = rect.top;
+    startX = e.clientX; startY = e.clientY;
+    panel.style.right = 'auto'; panel.style.bottom='auto';
+  });
+  handle.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    let nl = origLeft + (e.clientX-startX);
+    let nt = origTop + (e.clientY-startY);
+    const maxL = window.innerWidth - panel.offsetWidth - 6;
+    const maxT = window.innerHeight - panel.offsetHeight - 6;
+    nl = Math.max(6, Math.min(nl, Math.max(6,maxL)));
+    nt = Math.max(6, Math.min(nt, Math.max(6,maxT)));
+    panel.style.left = nl+'px';
+    panel.style.top = nt+'px';
+  });
+  handle.addEventListener('pointerup', (e)=>{ dragging=false; try{handle.releasePointerCapture(e.pointerId);}catch(err){} });
+  handle.addEventListener('pointercancel', ()=>{ dragging=false; });
+}
+makeDraggable(reportsPanel, document.getElementById('reports-drag-handle'));
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
