@@ -35,23 +35,24 @@ CREATE TABLE IF NOT EXISTS messages (
   deleted INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
-
 CREATE TABLE IF NOT EXISTS reports (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  location TEXT NOT NULL,
+  description TEXT,
+  is_panic INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending', -- pending | accepted | resolved | rejected
   reporter_id INTEGER NOT NULL,
   reporter_name TEXT NOT NULL,
-  location TEXT NOT NULL,
-  details TEXT,
-  is_panic INTEGER NOT NULL DEFAULT 0,
-  status TEXT NOT NULL DEFAULT 'pending', -- pending | accepted | finished | rejected
   accepted_by_id INTEGER,
   accepted_by_name TEXT,
-  responders TEXT NOT NULL DEFAULT '[]', -- JSON array of {id,name} for panic multi-responders
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   accepted_at TEXT,
-  finished_at TEXT
+  resolved_at TEXT
 );
 `);
+
+// Migration: ensure the fixed owner's email is always correct, without touching their existing login code
+db.prepare(`UPDATE users SET email = ? WHERE role = 'owner'`).run('slomsalman2@gmail.com');
 
 // Seed: default rooms (موجة 1..3)
 const roomCount = db.prepare('SELECT COUNT(*) c FROM rooms').get().c;
@@ -62,14 +63,14 @@ if (roomCount === 0) {
   ins.run('موجة 3');
 }
 
-// Seed: default owner code if no users exist yet — generated ONCE, printed once, never regenerated.
+// Seed: default owner code if no users exist yet
 let seededOwnerCode = null;
 const userCount = db.prepare('SELECT COUNT(*) c FROM users').get().c;
 if (userCount === 0) {
   seededOwnerCode = 'OWNER-' + nanoid(8).toUpperCase();
   db.prepare(`INSERT INTO users (code, email, name, rank, department, role)
               VALUES (?, ?, ?, ?, ?, 'owner')`)
-    .run(seededOwnerCode, 'slomsalman2@gmail.com', 'المالك', 'قائد عام', 'الإدارة العامة');
+    .run(seededOwnerCode, 'slomsalman2@gmail.com', 'المالك', 'قائد', 'الإدارة العامة');
 }
 
 module.exports = { db, seededOwnerCode };
