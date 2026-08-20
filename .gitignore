@@ -1,0 +1,4 @@
+node_modules/
+radio.db
+radio.db-*
+.env
